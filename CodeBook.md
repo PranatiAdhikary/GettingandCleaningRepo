@@ -1,45 +1,18 @@
 # Introduction
 
-You have to download sourse data from link below and unzip it to working directory of R Studio.
-You have to perform R script.
-### About source data :
+The script run_analysis.Performs the 5 steps described in the course project's definition.
 
-As sourse data for work was used Human Activity Recognition Using Smartphones Data Set. A full description is available at the site where the data was obtained: 
-http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones 
-Here are the data for the project: https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
+- First, all the similar data is merged using the rbind() function. By similar, we address those files having the same number of columns and referring to the same entities.
+- Then, only those columns with the mean and standard deviation measures are taken from the whole dataset. After extracting these columns, they are given the correct names, taken from features.txt.
+- As activity data is addressed with values 1:6, we take the activity names and IDs from activity_labels.txt and they are substituted in the dataset.
+- On the whole dataset, those columns with vague column names are corrected.
+- Finally, we generate a new dataset with all the average measures for each subject and activity type. The output file is called tidy.txt, and uploaded to this repository.
 
-### R Script :
-
-
-File with R code "run_analysis.R" performs the following steps (in accordance assigned task of course work):
-
-Merging the training and the test sets to create one data set.
-
-1. Reading files
-2. Reading trainings tables
-3. Reading testing tables
-4. Reading feature vector
-5. Reading activity labels
-6. Assigning column names
-7. Merging all data in one set
-8. Extracting only the measurements on the mean and standard deviation for each measurement
-9. Reading column names
-10. Create vector for defining ID, mean and standard deviation
-11. Making nessesary subset from finaldataset
-12. Using descriptive activity names to name the activities in the data set
-13. Appropriately labeling the data set with descriptive variable names
-14. Creating a second, independent tidy data set with the average of each variable for each activity and each subject
-15. Making second tidy data set
-16. Writing second tidy data set in txt file
-
-
-## Variables:
+# Variables
 
 - x_train, y_train, x_test, y_test, subject_train and subject_test contain the data from the downloaded files.
-- features contains the vectors present in the downloaded file
-- activityLabels contains the differrent activities present in the downloaded file
-- mrg_trainingData, mrg_testingData merge the previous datasets to further analysis.
-- finaldataset merges both the previous merged training and testing data set to create a new data set.
-- mean_and_std vector has created for defining ID,mean and standard deviation
-- setForMeanAndStd variable has created to extract only the measurements on the mean and standard deviation for each measurement from the finaldataset
-- Finally, secTidySet contains the tidy data set with the average of each variable for each activity and each subject.
+- x_data, y_data and subject_data merge the previous datasets to further analysis.
+- features contains the correct names for the x_data dataset, which are applied to the column names stored in mean_and_std_features, a numeric vector used to extract the desired data.
+- A similar approach is taken with activity names through the activities variable.
+- all_data merges x_data, y_data and subject_data in a big dataset.
+- Finally, tidy contains the relevant averages which will be later stored in a .txt file. ddply() from the plyr package is used to apply colMeans() and ease the development.
