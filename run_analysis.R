@@ -10,6 +10,7 @@ fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%2
 download.file(fileUrl,destfile="./Sayanti/Dataset.zip")
 unzip(zipfile="./Sayanti/Dataset.zip",exdir="./Sayanti")
 
+# Step 1
 # Merges the training and test data set to create one data set
 # Reading train file
 x_train <- read.table("./Sayanti/UCI HAR Dataset/train/X_train.txt")
@@ -21,43 +22,51 @@ x_test <- read.table("./Sayanti/UCI HAR Dataset/test/X_test.txt")
 y_test <- read.table("./Sayanti/UCI HAR Dataset/test/y_test.txt")
 subject_test <- read.table("./Sayanti/UCI HAR Dataset/test/subject_test.txt")
 
-# Reading features vectors
+# create 'x' data set
+x_data <- rbind(x_train, x_test)
+
+# create 'y' data set
+y_data <- rbind(y_train, y_test)
+
+# create 'subject' data set
+subject_data <- rbind(subject_train, subject_test)
+
+# Step 2
+# Extract only the measurements on the mean and standard deviation for each measurement
 features <- read.table("./Sayanti/UCI HAR Dataset/features.txt")
 
-# Reading activity labels
-activityLabels <- read.table("./Sayanti/UCI HAR Dataset/activity_labels.txt")
+# get only columns with mean() or std() in their names
+mean_and_std_features <- grep("-(mean|std)\\(\\)", features[, 2])
 
-# Assigning Column names
-colnames(x_train) <- features[,2]
-colnames(y_train) <- "activityId"
-colnames(subject_train) <- "subjectId"
-colnames(x_test) <- features[,2] 
-colnames(y_test) <- "activityId"
-colnames(subject_test) <- "subjectId"
-colnames(activityLabels) <- c('activityId','activityType')
+# subset the desired columns
+x_data <- x_data[, mean_and_std_features]
 
-# 1.Merge the training and test data and created a new data set finaldataset
-mrg_trainingData <- cbind(y_train,subject_train,x_train)
-mrg_testingData <- cbind(y_test,subject_test,x_test)
-finaldataset <- rbind(mrg_trainingData,mrg_testingData)
+# correct the column names
+names(x_data) <- features[mean_and_std_features, 2]
 
-# Reading column names of the new data set finaldataset
-colnames <- colnames(finaldataset)
+# Step 3
+# Use descriptive activity names to name the activities in the data set
+activities <- read.table("./Sayanti/UCI HAR Dataset/activity_labels.txt")
 
-# Create vector for defining ID, mean and standard deviation
-mean_and_std <- (grepl("activityId",colnames)|grepl("subjectId",colnames)|grepl("mean",colnames)|grepl("std",colnames))
+# update values with correct activity names
+y_data[, 1] <- activities[y_data[, 1], 2]
 
-# 2.Created nessesary subset from finaldataset extracting only the measurements on the mean and standard deviation for each measurement:
-setForMeanAndStd <- finaldataset[ , mean_and_std == TRUE]
+# correct column name
+names(y_data) <- "activity"
 
-# 3.Used descriptive activity names to name the activities in the data set
-setWithActivityNames <- merge(setForMeanAndStd, activityLabels,
-                              by='activityId',
-                              all.x=TRUE)
-# 4.Labels the data set with descriptive variable names and 5. Created a second independent tidy data set
-secTidySet <- aggregate(. ~subjectId + activityId, setWithActivityNames, mean)
-secTidySet <- secTidySet[order(secTidySet$subjectId, secTidySet$activityId),]
+# Step 4
+# Appropriately label the data set with descriptive variable names
 
-# Write the text file using write.table() command
-write.table(secTidySet, "secTidySet.txt", row.name=FALSE)
+# correct column name
+names(subject_data) <- "subject"
 
+# bind all the data in a single data set
+all_data <- cbind(x_data, y_data, subject_data)
+
+# Step 5
+# Create a second, independent tidy data set with the average of each variable
+# for each activity and each subject
+library(plyr)
+averages_data <- ddply(all_data, .(subject, activity), function(x) colMeans(x[, 1:66]))
+
+write.table(averages_data, "averages_data.txt", row.name=FALSE)
